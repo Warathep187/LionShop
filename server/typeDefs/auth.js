@@ -10,26 +10,40 @@ module.exports = gql`
         email: String!
         password: String!
     }
-    type ProfileImageType {
-        url: String!
-        public_id: String!
+    type Image {
+        _id: ID!
+        url: String
+        public_id: String
     }
     type LoginResponseType {
+        _id: ID!
         token: String!
         username: String!
-        profileImage: ProfileImageType!
+        profileImage: Image!
         role: String!
+        unreadMessage: Boolean!
+        unreadNotification: Boolean!
     }
-    type LoggedInUserResponseType {
-        username: String!
-        profileImage: ProfileImageType!
+
+    input SendOTPInput {
+        email: String!
     }
+    input ResetPasswordInput {
+        email: String!
+        password: String!
+        confirm: String!
+        otp: String!
+    }
+
     type Query {
-        getLoggedInUserInfo: LoggedInUserResponseType!
+        checkUserIsLoggedIn: Boolean!
+        getLoggedInUserInfo: LoginResponseType!
     }
     type Mutation {
         signup(input: SignupType!): String!
         login(input: LoginType!): LoginResponseType!
         verify(token: String!): String!
+        sendOTP(input: SendOTPInput!): String!
+        resetPassword(input: ResetPasswordInput!): String!
     }
 `;

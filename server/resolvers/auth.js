@@ -1,10 +1,11 @@
 const User = require("../models/user");
-const signupValidator = require("../validators/signup");
-const loginValidator = require("../validators/login");
-const { authMiddleware, passwordHashing, comparePassword } = require("../utils/auth");
+const { signupValidator, loginValidator, sendOTPValidator, resetPasswordValidator } = require("../validators/auth");
+const {
+    authMiddleware,
+    passwordHashing,
+    comparePassword,
+} = require("../utils/auth");
 const jwt = require("jsonwebtoken");
-const bcrypt = require("bcrypt");
-const { uuid } = require("uuidv4");
 const shortid = require("shortid");
 const nodemailer = require("nodemailer");
 const sendgridTransport = require("nodemailer-sendgrid-transport");
@@ -75,9 +76,7 @@ const login = async (parent, args) => {
     try {
         await loginValidator(args.input);
         const { email, password } = args.input;
-        const user = await User.findOne({ email, verified: true }).select(
-            "_id username role profileImage email password"
-        );
+        const user = await User.findOne({ email, verified: true }).select("password username profileImage role unreadMessage unreadNotification");
         if (!user) {
             throw new Error("Email not found");
         }
@@ -85,14 +84,16 @@ const login = async (parent, args) => {
         if (!isMatch) {
             throw new Error("Password is incorrect");
         }
-        const token = jwt.sign({ _id: user._id }, process.env.JWT_AUTHENTICATION, {
-            expiresIn: "12h",
+        const token = jwt.sign({ _id: user._id, role: user.role }, process.env.JWT_AUTHENTICATION, {
+            expiresIn: "5d",
         });
         return {
             token,
             username: user.username,
             profileImage: user.profileImage,
             role: user.role,
+            unreadMessage: user.unreadMessage,
+            unreadNotification: user.unreadNotification,
         };
     } catch (e) {
         throw new Error(e.message);
@@ -122,14 +123,65 @@ const verify = async (parent, args) => {
 const getLoggedInUserInfo = async (parent, args, { req }) => {
     try {
         const { _id } = await authMiddleware(req);
-        const user = await User.findById(_id).select("username profileImage");
+        const user = await User.findById(_id).select(
+            "username profileImage unreadMessage unreadNotification role"
+        );
         if (!user) {
             throw new Error("Unauthorized");
         }
-        return {
-            username: user.username,
-            profileImage: user.profileImage,
-        };
+        return user;
+    } catch (e) {
+        throw new Error(e.message);
+    }
+};
+
+const sendOTP = async (parent, args) => {
+    const { email } = args.input;
+    await sendOTPValidator(email);
+    const user = await User.findOne({ email: email.trim() }).select("email");
+    if (!user) {
+        throw new Error("Email not found");
+    }
+    const random = Math.floor(Math.random() * (999999 - 100000) + 100000);
+    user.security.otp = random;
+    user.security.expirationTime = Date.now() + 60 * 5 * 1000; // 5 minutes
+    const mailOptions = {
+        to: [email.trim()],
+        from: process.env.LION_EMAIL,
+        subject: "การรีเซ็ตรหัสผ่าน",
+        html: `
+            <p>Hi, Please use this OTP to reset your password. <b>${random}</b></p>
+        `,
+    };
+    await transporter.sendMail(mailOptions);
+    await user.save();
+    return "OTP has been sent to your email. OTP is available for 5 minutes.";
+};
+
+const resetPassword = async (parent, args) => {
+    try {
+        await resetPasswordValidator(args.input);
+        const { email, password, confirm, otp } = args.input;
+        const user = await User.findOne({ email: email.trim() }).select("email security");
+        if (!user) {
+            throw new Error("Email not found");
+        }
+        if(user.security.otp === "") {
+            throw new Error("OTP does not send, please send it again");
+        }
+        if(user.security.otp != otp) {
+            throw new Error("OTP does not match");
+        }
+        if(user.security.expirationTime < Date.now()) {
+            user.security.otp = "",
+            await user.save();
+            throw new Error("OTP has expired, please try again");
+        }
+        const hashed = await passwordHashing(password);
+        user.password = hashed;
+        user.security.otp = "",
+        await user.save();
+        return "Your password has been reset successfully";
     } catch (e) {
         throw new Error(e.message);
     }
@@ -143,5 +195,7 @@ module.exports = {
         signup,
         login,
         verify,
+        sendOTP,
+        resetPassword,
     },
 };

@@ -5,12 +5,14 @@ const UserSchema = new mongoose.Schema({
     email: {
         type: String,
         trim: true,
-        required: true
+        required: true,
+        index: true
     },
     password: {
         type: String,
         trim: true,
-        require: true
+        require: true,
+        select: false
     },
     username: {
         type: String,
@@ -40,7 +42,7 @@ const UserSchema = new mongoose.Schema({
             type: String,
             default: "",
         },
-        expire: Date
+        expirationTime: Date
     },
     unreadMessage: {
         type: Boolean,
@@ -50,22 +52,6 @@ const UserSchema = new mongoose.Schema({
         type: Boolean,
         default: false,
     },
-    information: {
-        fullName: {
-            type: String,
-            default: "",
-            trim: true,
-        },
-        address: {
-            type: String,
-            default: "",
-        },
-        tel: {
-            type: String,
-            default: "",
-            trim: true
-        }
-    }
 })
 
 module.exports = mongoose.model("User", UserSchema);
