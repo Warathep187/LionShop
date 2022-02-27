@@ -25,7 +25,7 @@ const authMiddleware = async (req, res) => {
 const adminMiddleware = async (req, res) => {
     try {
         if (!req.headers.token) {
-            throw new Error("Could not access this page");
+            throw new Error("Access Denied");
         }
         const token = req.headers.token.split(" ")[1];
         const decoded = jwt.verify(token, process.env.JWT_AUTHENTICATION);
@@ -34,7 +34,7 @@ const adminMiddleware = async (req, res) => {
         }
         const user = await User.findOne({ _id: decoded._id, verified: true, role: "admin" }).select("_id");
         if (!user) {
-            throw new Error("Could not access this page");
+            throw new Error("Access Denied");
         }
         return decoded;
     }catch(e) {

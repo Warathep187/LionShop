@@ -78,11 +78,11 @@ const login = async (parent, args) => {
         const { email, password } = args.input;
         const user = await User.findOne({ email, verified: true }).select("password username profileImage role unreadMessage unreadNotification");
         if (!user) {
-            throw new Error("Email not found");
+            throw new Error("ไม่พบผู้ใช้");
         }
         const isMatch = await comparePassword(password, user.password);
         if (!isMatch) {
-            throw new Error("Password is incorrect");
+            throw new Error("รหัสผ่านไม่ถูก");
         }
         const token = jwt.sign({ _id: user._id, role: user.role }, process.env.JWT_AUTHENTICATION, {
             expiresIn: "5d",
@@ -107,14 +107,14 @@ const verify = async (parent, args) => {
         const { email } = decoded;
         const user = await User.findOne({ email }).select("verified");
         if (!user) {
-            throw new Error("User not found");
+            throw new Error("ไม่พบผู้ใช้");
         }
         if (user.verified) {
-            throw new Error("User already verified");
+            throw new Error("ผู้ใช้นี้ถูกยืนยันตัวตนแล้ว");
         }
         user.verified = true;
         await user.save();
-        return "Verified. Let's login";
+        return "ผู้ใช้ได้รับการยืนยันตัวตนแล้ว";
     } catch (e) {
         throw new Error(e.message);
     }
@@ -140,7 +140,7 @@ const sendOTP = async (parent, args) => {
     await sendOTPValidator(email);
     const user = await User.findOne({ email: email.trim() }).select("email");
     if (!user) {
-        throw new Error("Email not found");
+        throw new Error("ไม่พบE-mailดังกล่าว");
     }
     const random = Math.floor(Math.random() * (999999 - 100000) + 100000);
     user.security.otp = random;
@@ -155,7 +155,7 @@ const sendOTP = async (parent, args) => {
     };
     await transporter.sendMail(mailOptions);
     await user.save();
-    return "OTP has been sent to your email. OTP is available for 5 minutes.";
+    return "โปรดตวรสอบอีเมลของคุณ, OTPนี้จะหมดอายุใน5นาที";
 };
 
 const resetPassword = async (parent, args) => {
@@ -164,24 +164,24 @@ const resetPassword = async (parent, args) => {
         const { email, password, confirm, otp } = args.input;
         const user = await User.findOne({ email: email.trim() }).select("email security");
         if (!user) {
-            throw new Error("Email not found");
+            throw new Error("ไม่พบอีเมลดังกล่าว");
         }
         if(user.security.otp === "") {
-            throw new Error("OTP does not send, please send it again");
+            throw new Error("ยังไม่เคยส่งOTP");
         }
         if(user.security.otp != otp) {
-            throw new Error("OTP does not match");
+            throw new Error("OTPไม่ถูกต้อง");
         }
         if(user.security.expirationTime < Date.now()) {
             user.security.otp = "",
             await user.save();
-            throw new Error("OTP has expired, please try again");
+            throw new Error("OTPหมดอายุแล้ว โปรดลองใหม่อีกครั้ง");
         }
         const hashed = await passwordHashing(password);
         user.password = hashed;
         user.security.otp = "",
         await user.save();
-        return "Your password has been reset successfully";
+        return "รหัสผ่านได้ถูกรีเซตแล้ว";
     } catch (e) {
         throw new Error(e.message);
     }

@@ -3,7 +3,7 @@ const { authMiddleware } = require("../utils/auth");
 const { updateProfileValidator, changePasswordValidator } = require("../validators/user");
 const cloudinary = require("cloudinary").v2;
 const { v4: uuidv4 } = require("uuid");
-const { passwordHashing, comparePassword } = require("../utils/auth");
+const { passwordHashing } = require("../utils/auth");
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_NAME,
@@ -49,7 +49,7 @@ const updateProfile = async (parent, args, { req }) => {
                     profileImage: newProfileImage,
                 };
             }
-            throw new Error("กรอกข้อมูลใหม่ก่อนแก้ไขข้อมูล")
+            throw new Error("กรอกข้อมูลใหม่ก่อนแก้ไขข้อมูล");
         } else {
             const isDuplicate = await User.findOne({ _id: { $ne: _id }, username }).select("_id");
             if (isDuplicate) {
@@ -74,7 +74,7 @@ const updateProfile = async (parent, args, { req }) => {
                     username,
                     profileImage: newProfileImage,
                 };
-            }else {
+            } else {
                 user.username = username;
                 await user.save();
                 return user;
@@ -100,17 +100,17 @@ const changePassword = async (parent, args, { req }) => {
 
 const getProfile = async (parent, args, { req }) => {
     try {
-        const {_id} = await authMiddleware(req);
+        const { _id } = await authMiddleware(req);
         const profile = await User.findById(_id).select("email username profileImage");
         return profile;
-    }catch (e) {
+    } catch (e) {
         throw new Error(e.message);
     }
-}
+};
 
 module.exports = {
     Query: {
-        getProfile
+        getProfile,
     },
     Mutation: {
         readNotification,

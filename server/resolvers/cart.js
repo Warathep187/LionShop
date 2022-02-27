@@ -1,6 +1,5 @@
 const Cart = require("../models/cart");
 const Product = require("../models/product");
-const User = require("../models/user");
 const { authMiddleware } = require("../utils/auth");
 const { addToCartValidator } = require("../validators/cart");
 const generatePayload = require("promptpay-qr");

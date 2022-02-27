@@ -1,6 +1,6 @@
 const Category = require("../models/category");
 const Product = require("../models/product");
-const { authMiddleware, adminMiddleware } = require("../utils/auth");
+const { adminMiddleware } = require("../utils/auth");
 
 const createCategory = async (parent, args, { req }) => {
     try {

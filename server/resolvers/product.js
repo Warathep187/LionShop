@@ -1,12 +1,10 @@
-const User = require("../models/user");
 const Category = require("../models/category");
 const Product = require("../models/product");
 const Comment = require("../models/comment");
 const Cart = require("../models/cart");
-const { authMiddleware, adminMiddleware } = require("../utils/auth");
+const { adminMiddleware } = require("../utils/auth");
 const { v4: uuidv4 } = require("uuid");
 const { productValidator, updateProductValidator } = require("../validators/product");
-const jwt = require("jsonwebtoken");
 const cloudinary = require("cloudinary").v2;
 const { getProductCache, setProductCache, deleteProductCache } = require("../utils/redisActions");
 

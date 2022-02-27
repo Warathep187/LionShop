@@ -12,7 +12,6 @@ const getProductCache = async (productId) => {
         const product = await client.get(productId.toString());
         return product;
     } catch (e) {
-        console.log(e);
     }
 };
 
@@ -20,7 +19,6 @@ const deleteProductCache = async (productId) => {
     try {
         await client.del(productId.toString());
     } catch (e) {
-        console.log(e);
     }
 };
 
@@ -31,7 +29,6 @@ const setProductCache = async (product) => {
             NX: true,
         });
     } catch (e) {
-        console.log(e);
     }
 };
 

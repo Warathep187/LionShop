@@ -1,6 +1,4 @@
 const User = require("../models/user");
-const Category = require("../models/category");
-const Product = require("../models/product");
 const Payment = require("../models/payment");
 const { adminMiddleware } = require("../utils/auth");
 const cloudinary = require("cloudinary").v2;
@@ -47,7 +45,7 @@ const adminGetSpecificPayment = async (parent, args, { req }) => {
             "_id coverImage name"
         );
         if (!payment) {
-            throw new Error("Payment not found");
+            throw new Error("ไม่พบข้อมูลของออเดอร์ดังกล่าว");
         }
         return payment;
     } catch (e) {
@@ -64,10 +62,10 @@ const addTrackingNumber = async (parent, args, { req }) => {
         }
         const payment = await Payment.findOne({ _id: paymentId }).select("status trackingNumber");
         if (payment.status.cancel) {
-            throw new Error("Payment is canceled");
+            throw new Error("ออเดอร์ได้ถูกยกเลิกแล้ว");
         }
         if (!payment.status.confirm) {
-            throw new Error("Please confirm before add a tracking number");
+            throw new Error("โปรดยืนยันออเดอร์นี้ก่อนจะเพิ่มหมายเลขพัสดุ");
         }
         payment.trackingNumber = trackingNumber;
         await payment.save();

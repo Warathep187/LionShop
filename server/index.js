@@ -19,7 +19,7 @@ const {
     checkIsAdmin,
 } = require("./utils/paymentRealtimeActions");
 const { checkRole, sendMessageToUser, sendMessageToAdmin } = require("./utils/chatRealtimeActions");
-const {removeOnlineUserCache} = require("./utils/redisActions");
+const { removeOnlineUserCache } = require("./utils/redisActions");
 
 const { ApolloServer } = require("apollo-server-express");
 const { mergeTypeDefs, mergeResolvers } = require("@graphql-tools/merge");
@@ -30,7 +30,6 @@ app.use(bodyParser.json({ limit: "3mb" }));
 
 io.on("connection", (socket) => {
     socket.on("join", async (user) => {
-        console.log("user connected");
         await addUser(user._id, socket.id);
     });
     socket.on("actionsInOrder", async ({ userId, type, orderId, _id }) => {
@@ -75,18 +74,16 @@ io.on("connection", (socket) => {
                 io.to(socket.id).emit("sentMessage");
             } else {
                 io.to(socket.id).emit("sentMessage");
-                console.log(result.conversation);
                 io.to(result.socketId).emit("receiveMessage", {
                     conversationInfo: result.conversation,
                     socketId: result.socketId,
-                    message
+                    message,
                 });
             }
         }
     });
     socket.on("disconnect", async () => {
         await removeOnlineUserCache(socket.id);
-        console.log("Disconnected");
     });
 });
 

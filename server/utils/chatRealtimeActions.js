@@ -11,7 +11,6 @@ const checkRole = async (_id) => {
         }
         return user.role;
     } catch (e) {
-        console.log(e);
         return "Error";
     }
 };
@@ -45,7 +44,10 @@ const sendMessageToUser = async ({ _id, message, toUser }) => {
                     await newMsg.save();
                     return user.socketId;
                 } else {
-                    await Conversation.updateOne({ _id: isExisting._id }, { lastMessageAt: Date.now() });
+                    await Conversation.updateOne(
+                        { _id: isExisting._id },
+                        { lastMessageAt: Date.now() }
+                    );
                     const newMsg = new Message({
                         conversation: isExisting._id,
                         user: toUser,
@@ -75,7 +77,10 @@ const sendMessageToUser = async ({ _id, message, toUser }) => {
                     });
                     await newMsg.save();
                 } else {
-                    await Conversation.updateOne({ _id: isExisting._id }, { lastMessageAt: Date.now() });
+                    await Conversation.updateOne(
+                        { _id: isExisting._id },
+                        { lastMessageAt: Date.now() }
+                    );
                     const newMsg = new Message({
                         conversation: isExisting._id,
                         user: toUser,
@@ -106,7 +111,10 @@ const sendMessageToUser = async ({ _id, message, toUser }) => {
                 });
                 await newMsg.save();
             } else {
-                await Conversation.updateOne({ _id: isExisting._id }, { lastMessageAt: Date.now() });
+                await Conversation.updateOne(
+                    { _id: isExisting._id },
+                    { lastMessageAt: Date.now() }
+                );
                 const newMsg = new Message({
                     conversation: isExisting._id,
                     user: toUser,
@@ -120,13 +128,12 @@ const sendMessageToUser = async ({ _id, message, toUser }) => {
             return "OK";
         }
     } catch (e) {
-        console.log(e);
         return "Error";
     }
 };
 
 const setAdminUnreadMessage = async (id) => {
-    await User.updateOne({_id: id}, {unreadMessage: true})
+    await User.updateOne({ _id: id }, { unreadMessage: true });
 };
 const sendMessageToAdmin = async ({ _id, message }) => {
     try {
@@ -135,12 +142,14 @@ const sendMessageToAdmin = async ({ _id, message }) => {
         if (users) {
             const user = users.find((user) => user.userId === admin._id.toString());
             if (user) {
-                const isExisting = await Conversation.findOne({ user: _id }).select("_id user lastMessageAt isRead").populate("user", "username profileImage");
+                const isExisting = await Conversation.findOne({ user: _id })
+                    .select("_id user lastMessageAt isRead")
+                    .populate("user", "username profileImage");
                 if (!isExisting) {
                     const newConversation = new Conversation({
                         user: _id,
                         lastMessageAt: Date.now(),
-                        isRead: false
+                        isRead: false,
                     });
                     await newConversation.save();
                     const newMsg = new Message({
@@ -155,7 +164,7 @@ const sendMessageToAdmin = async ({ _id, message }) => {
                     return {
                         conversation: newConversation,
                         socketId: user.socketId,
-                    }
+                    };
                 } else {
                     const newMsg = new Message({
                         conversation: isExisting._id,
@@ -181,7 +190,7 @@ const sendMessageToAdmin = async ({ _id, message }) => {
                     const newConversation = new Conversation({
                         user: _id,
                         lastMessageAt: Date.now(),
-                        isRead: false
+                        isRead: false,
                     });
                     await newConversation.save();
                     const newMsg = new Message({
@@ -204,7 +213,7 @@ const sendMessageToAdmin = async ({ _id, message }) => {
                     });
                     isExisting.lastMessageAt = Date.now();
                     isExisting.isRead = false;
-                    await isExisting.save()
+                    await isExisting.save();
                     await newMsg.save();
                 }
                 return "OK";
@@ -216,7 +225,7 @@ const sendMessageToAdmin = async ({ _id, message }) => {
                 const newConversation = new Conversation({
                     user: _id,
                     lastMessageAt: Date.now(),
-                    isRead: false
+                    isRead: false,
                 });
                 await newConversation.save();
                 const newMsg = new Message({
@@ -239,7 +248,7 @@ const sendMessageToAdmin = async ({ _id, message }) => {
                 });
                 isExisting.lastMessageAt = Date.now();
                 isExisting.isRead = false;
-                await isExisting.save()
+                await isExisting.save();
                 await newMsg.save();
             }
             return "OK";

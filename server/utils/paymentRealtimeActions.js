@@ -3,8 +3,6 @@ const Payment = require("../models/payment");
 const Product = require("../models/product");
 const Notification = require("../models/notification");
 const {
-    getProductCache,
-    setProductCache,
     deleteProductCache,
     getOnlineUsersCache,
     setNewOnlineUserCache,
@@ -95,7 +93,7 @@ const confirmOrder = async (orderId, type, userId) => {
     }
     if (type === "confirm") {
         if (payment.status.confirm) {
-            return "Order is already confirmed";
+            return "ออเดอร์ได้รับการยืนยันแล้ว";
         }
         payment.status.confirm = true;
         payment.reviewExpirationTime = Date.now() + 1000 * 60 * 60 * 24 * 5;
@@ -109,7 +107,7 @@ const confirmOrder = async (orderId, type, userId) => {
         return null;
     } else if (type === "cancel") {
         if (payment.status.cancel) {
-            return "Order is not canceled";
+            return "ออเดอร์ถูกยกเลิกแล้ว";
         }
         payment.status.cancel = true;
         await payment.save();
