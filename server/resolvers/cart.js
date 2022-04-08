@@ -5,7 +5,7 @@ const { addToCartValidator } = require("../validators/cart");
 const generatePayload = require("promptpay-qr");
 const qrcode = require("qrcode");
 
-const ID = "1-5099-66168-234";
+const ID = "PROMPT_PAY_ID";
 
 const cart = async (parent, args, { req }) => {
     const { _id } = await authMiddleware(req);
